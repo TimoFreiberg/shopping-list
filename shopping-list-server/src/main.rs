@@ -4,11 +4,14 @@ use std::{
 };
 
 use rocket::routes;
-use shopping_list_server::{Item, ItemId};
+use shopping_list_server::{CompletedItem, Item, ItemId};
 
 fn main() {
     rocket::ignite()
         .manage(Arc::new(Mutex::new(HashMap::<ItemId, Item>::new())))
+        .manage(Arc::new(
+            Mutex::new(HashMap::<ItemId, CompletedItem>::new()),
+        ))
         .manage(AtomicUsize::new(0))
         .mount(
             "/",

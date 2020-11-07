@@ -3,4 +3,4 @@
 pub mod api;
 mod model;
 
-pub use model::{Error, Item, ItemId, Result};
+pub use model::{CompletedItem, Error, Item, ItemId, Result};

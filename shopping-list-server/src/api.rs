@@ -1,6 +1,6 @@
 use crate::{
     model::{ItemId, OpenItems},
-    Item, Result,
+    CompletedItem, Item, Result,
 };
 use rocket::{get, post, put, State};
 use rocket_contrib::json::Json;
@@ -53,9 +53,18 @@ pub struct AddTaskBody {
 }
 
 #[put("/items/<id>/complete")]
-pub fn complete_item(db: State<Arc<Mutex<HashMap<ItemId, Item>>>>, id: String) -> Result<()> {
+pub fn complete_item(
+    open_db: State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    completed_db: State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    id: String,
+) -> Result<()> {
     let id = ItemId(id);
-    let _item = db.lock().unwrap().remove(&id);
+    let item = open_db.lock().unwrap().remove(&id);
+    if let Some(item) = item {
+        let now = OffsetDateTime::now_utc();
+        let completed_item = item.complete(now);
+        completed_db.lock().unwrap().insert(id, completed_item);
+    }
     Ok(())
 }
 
