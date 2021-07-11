@@ -8,10 +8,9 @@ edition = "2018"
 
 [dependencies]
 eyre = "0.6"
-rocket = { version = "0.4" }
-rocket_contrib = { version = "0.4", default-features = false, features = ["json"] }
+rocket = { version = "0.5.0-rc.1", features = ["json"] }
 serde = "1"
 serde_json = "1"
-sqlx = "0.3"
+sqlx = { version = "0.5", features = ["runtime-tokio-rustls"] }
 thiserror = "1"
 time = { version = "0.2", features = ["serde"] }

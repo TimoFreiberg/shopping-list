@@ -1,62 +1,81 @@
 use crate::{
-    model::{ItemId, OpenItems},
+    model::{CompletedItems, ItemId, OpenItems},
     CompletedItem, Item, Result,
 };
-use rocket::{get, post, put, State};
-use rocket_contrib::json::Json;
+use rocket::{get, post, put, serde::json::Json, State};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
     sync::{
-        atomic::{AtomicUsize, Ordering},
+        atomic::{AtomicU64, Ordering},
         Arc, Mutex,
     },
 };
 use time::OffsetDateTime;
 
 #[get("/items?<offset>&<limit>")]
-pub fn get_open_items(
-    db: State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+pub async fn get_open_items(
+    db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
     offset: Option<usize>,
     limit: Option<usize>,
 ) -> Result<Json<OpenItems>> {
-    let mut values: Vec<_> = db.lock().unwrap().values().cloned().collect();
+    let mutex_guard = db.lock().unwrap();
+    let mut values: Vec<_> = mutex_guard.values().collect();
     values.sort_unstable_by_key(|it| it.created_at);
-    values = values
+    let values = values
         .into_iter()
         .skip(offset.unwrap_or(0))
         .take(limit.unwrap_or(DEFAULT_LIMIT))
+        .cloned()
         .collect();
     Ok(Json(OpenItems { items: values }))
 }
 
+#[get("/items/completed?<offset>&<limit>")]
+pub async fn get_done_items(
+    db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Result<Json<CompletedItems>> {
+    let mutex_guard = db.lock().unwrap();
+    let mut values: Vec<_> = mutex_guard.values().collect();
+    values.sort_unstable_by_key(|it| it.completed_at);
+    let values = values
+        .into_iter()
+        .skip(offset.unwrap_or(0))
+        .take(limit.unwrap_or(DEFAULT_LIMIT))
+        .cloned()
+        .collect();
+    Ok(Json(CompletedItems { items: values }))
+}
+
 #[post("/items", format = "json", data = "<body>")]
-pub fn add_task(
-    db: State<Arc<Mutex<HashMap<ItemId, Item>>>>,
-    id_counter: State<AtomicUsize>,
+pub async fn add_task(
+    db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    id_counter: &State<AtomicU64>,
     body: Json<AddTaskBody>,
-) -> Result<()> {
+) -> Result<Json<Item>> {
     let now = OffsetDateTime::now_utc();
-    let id = ItemId(id_counter.fetch_add(1, Ordering::Relaxed).to_string());
+    let id = ItemId(id_counter.fetch_add(1, Ordering::Relaxed));
     let item = Item {
         id: id.clone(),
-        description: body.description.clone(),
+        name: body.into_inner().name,
         created_at: now,
     };
-    db.lock().unwrap().insert(id, item);
-    Ok(())
+    db.lock().unwrap().insert(id, item.clone());
+    Ok(Json(item))
 }
 
 #[derive(Deserialize)]
 pub struct AddTaskBody {
-    description: String,
+    name: String,
 }
 
 #[put("/items/<id>/complete")]
-pub fn complete_item(
-    open_db: State<Arc<Mutex<HashMap<ItemId, Item>>>>,
-    completed_db: State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
-    id: String,
+pub async fn complete_item(
+    open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    completed_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    id: u64,
 ) -> Result<()> {
     let id = ItemId(id);
     let item = open_db.lock().unwrap().remove(&id);
@@ -68,4 +87,19 @@ pub fn complete_item(
     Ok(())
 }
 
-const DEFAULT_LIMIT: usize = 100;
+#[put("/items/<id>/undo")]
+pub async fn undo_item(
+    open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    completed_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    id: u64,
+) -> Result<()> {
+    let id = ItemId(id);
+    let item = completed_db.lock().unwrap().remove(&id);
+    if let Some(item) = item {
+        let item = item.undo();
+        open_db.lock().unwrap().insert(id, item);
+    }
+    Ok(())
+}
+
+const DEFAULT_LIMIT: usize = 200;
