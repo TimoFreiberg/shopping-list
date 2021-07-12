@@ -1,0 +1,2 @@
+[workspace]
+members = ["./shopping-list-server"]
