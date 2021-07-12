@@ -21,13 +21,9 @@ impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
 }
 
 #[derive(Debug, Serialize)]
-pub struct OpenItems {
-    pub items: Vec<Item>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct CompletedItems {
-    pub items: Vec<CompletedItem>,
+pub struct Items {
+    pub open: Vec<Item>,
+    pub done: Option<Vec<CompletedItem>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,7 +39,7 @@ impl Item {
             id: self.id,
             name: self.name,
             created_at: self.created_at,
-            completed_at: now,
+            done_at: now,
         }
     }
 }
@@ -53,7 +49,7 @@ pub struct CompletedItem {
     pub(crate) id: ItemId,
     pub(crate) name: String,
     pub(crate) created_at: OffsetDateTime,
-    pub(crate) completed_at: OffsetDateTime,
+    pub(crate) done_at: OffsetDateTime,
 }
 
 impl CompletedItem {

@@ -1,8 +1,9 @@
 use crate::{
-    model::{CompletedItems, ItemId, OpenItems},
+    cors::{PreflightCORS, CORS},
+    model::{ItemId, Items},
     CompletedItem, Item, Result,
 };
-use rocket::{get, post, put, serde::json::Json, State};
+use rocket::{get, http::Method, options, post, put, serde::json::Json, State};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -13,44 +14,27 @@ use std::{
 };
 use time::OffsetDateTime;
 
-#[get("/items?<offset>&<limit>")]
-pub async fn get_open_items(
-    db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+#[get("/items?<offset>&<limit>&<done_items_collapsed>")]
+pub async fn get_items(
+    open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     offset: Option<usize>,
     limit: Option<usize>,
-) -> Result<Json<OpenItems>> {
-    let mutex_guard = db.lock().unwrap();
-    let mut values: Vec<_> = mutex_guard.values().collect();
-    values.sort_unstable_by_key(|it| it.created_at);
-    let values = values
-        .into_iter()
-        .skip(offset.unwrap_or(0))
-        .take(limit.unwrap_or(DEFAULT_LIMIT))
-        .cloned()
-        .collect();
-    Ok(Json(OpenItems { items: values }))
-}
+    done_items_collapsed: bool,
+) -> Result<Json<Items>> {
+    let open = open_items(open_db, offset, limit);
 
-#[get("/items/completed?<offset>&<limit>")]
-pub async fn get_done_items(
-    db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
-    offset: Option<usize>,
-    limit: Option<usize>,
-) -> Result<Json<CompletedItems>> {
-    let mutex_guard = db.lock().unwrap();
-    let mut values: Vec<_> = mutex_guard.values().collect();
-    values.sort_unstable_by_key(|it| it.completed_at);
-    let values = values
-        .into_iter()
-        .skip(offset.unwrap_or(0))
-        .take(limit.unwrap_or(DEFAULT_LIMIT))
-        .cloned()
-        .collect();
-    Ok(Json(CompletedItems { items: values }))
+    let done = if done_items_collapsed {
+        None
+    } else {
+        Some(done_items(done_db, offset, limit))
+    };
+
+    Ok(Json(Items { open, done }))
 }
 
 #[post("/items", format = "json", data = "<body>")]
-pub async fn add_task(
+pub async fn add_item(
     db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
     id_counter: &State<AtomicU64>,
     body: Json<AddTaskBody>,
@@ -71,35 +55,79 @@ pub struct AddTaskBody {
     name: String,
 }
 
-#[put("/items/<id>/complete")]
+#[put("/items/<id>/complete?<done_items_collapsed>")]
 pub async fn complete_item(
     open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
-    completed_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     id: u64,
-) -> Result<()> {
+    done_items_collapsed: bool,
+) -> Result<Json<Items>> {
     let id = ItemId(id);
     let item = open_db.lock().unwrap().remove(&id);
     if let Some(item) = item {
         let now = OffsetDateTime::now_utc();
         let completed_item = item.complete(now);
-        completed_db.lock().unwrap().insert(id, completed_item);
+        done_db.lock().unwrap().insert(id, completed_item);
     }
-    Ok(())
+    get_items(open_db, done_db, None, None, done_items_collapsed).await
 }
 
-#[put("/items/<id>/undo")]
+#[put("/items/<id>/undo?<done_items_collapsed>")]
 pub async fn undo_item(
     open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
-    completed_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     id: u64,
-) -> Result<()> {
+    done_items_collapsed: bool,
+) -> Result<Json<Items>> {
     let id = ItemId(id);
-    let item = completed_db.lock().unwrap().remove(&id);
+    let item = done_db.lock().unwrap().remove(&id);
     if let Some(item) = item {
         let item = item.undo();
         open_db.lock().unwrap().insert(id, item);
     }
-    Ok(())
+    get_items(open_db, done_db, None, None, done_items_collapsed).await
+}
+
+#[options("/items/<_..>")]
+pub fn cors_preflight<'a>() -> PreflightCORS {
+    CORS::any(()).headers(vec!["content-type"]).methods(vec![
+        Method::Options,
+        Method::Put,
+        Method::Post,
+        Method::Get,
+    ])
+}
+
+fn open_items(
+    open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Vec<Item> {
+    let mutex_guard = open_db.lock().unwrap();
+    let mut values: Vec<_> = mutex_guard.values().collect();
+    values.sort_unstable_by_key(|it| it.created_at);
+    values
+        .into_iter()
+        .skip(offset.unwrap_or(0))
+        .take(limit.unwrap_or(DEFAULT_LIMIT))
+        .cloned()
+        .collect()
+}
+
+fn done_items(
+    done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Vec<CompletedItem> {
+    let mutex_guard = done_db.lock().unwrap();
+    let mut values: Vec<_> = mutex_guard.values().collect();
+    values.sort_unstable_by_key(|it| it.done_at);
+    values
+        .into_iter()
+        .skip(offset.unwrap_or(0))
+        .take(limit.unwrap_or(DEFAULT_LIMIT))
+        .cloned()
+        .collect()
 }
 
 const DEFAULT_LIMIT: usize = 200;

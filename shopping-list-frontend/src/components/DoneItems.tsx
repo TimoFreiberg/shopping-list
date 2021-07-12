@@ -6,7 +6,6 @@ type Props = {
     items: Item[]
 }
 const DoneItems = ({ undoItem, items }: Props) => {
-    console.log("done items", items)
     return <div>
         {items.map(i => <DoneItem key={i.id} item={i} undoItem={() => undoItem(i)} />)}
     </div>

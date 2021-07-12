@@ -4,11 +4,12 @@ use std::{
 };
 
 use rocket::{launch, routes};
-use shopping_list_server::{CompletedItem, Item, ItemId};
+use shopping_list_server::{CompletedItem, CorsFairing, Item, ItemId};
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
+        .attach(CorsFairing::any())
         .manage(Arc::new(Mutex::new(HashMap::<ItemId, Item>::new())))
         .manage(Arc::new(
             Mutex::new(HashMap::<ItemId, CompletedItem>::new()),
@@ -17,10 +18,11 @@ fn rocket() -> _ {
         .mount(
             "/",
             routes![
-                shopping_list_server::api::get_open_items,
-                shopping_list_server::api::add_task,
+                shopping_list_server::api::get_items,
+                shopping_list_server::api::add_item,
                 shopping_list_server::api::complete_item,
                 shopping_list_server::api::undo_item,
+                shopping_list_server::api::cors_preflight,
             ],
         )
 }

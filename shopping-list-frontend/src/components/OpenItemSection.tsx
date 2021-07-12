@@ -41,7 +41,6 @@ const OpenItemSection = ({ items, setItems, addItem, finishItem }: Props) => {
         }
         setItems(newItems)
     }
-    console.log("open items", items)
     return <div>
         <AddItem addItem={addItem} />
         {items.map((i, pos) =>

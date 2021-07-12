@@ -1,4 +1,8 @@
 pub mod api;
+mod cors;
 mod model;
 
-pub use model::{CompletedItem, Error, Item, ItemId, Result};
+pub use self::{
+    cors::CorsFairing,
+    model::{CompletedItem, Error, Item, ItemId, Result},
+};

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Item } from '../Types'
 import CloseDoneItemsButton from './CloseDoneItemsButton'
 import DoneItems from './DoneItems'
@@ -7,23 +6,23 @@ import OpenDoneItemsButton from './OpenDoneItemsButton'
 type Props = {
     items: Item[]
     undoItem: (item: Item) => void
+    doneItemsCollapsed: boolean
+    setDoneItemsCollapsed: (collapsed: boolean) => void
 }
 
-const DoneItemSection = ({ items, undoItem }: Props) => {
-    const [doneItemsCollapsed, setDoneItemsCollapsed] = useState(true)
-    const itemCount = <>{items.length} completed</>
+const DoneItemSection = ({ items, undoItem, doneItemsCollapsed, setDoneItemsCollapsed }: Props) => {
     if (doneItemsCollapsed) {
         const openDoneItems = () => setDoneItemsCollapsed(false)
         return <div>
             <OpenDoneItemsButton openDoneItems={openDoneItems} />
-            {itemCount}
+            show completed
         </div>
     }
     const closeDoneItems = () => setDoneItemsCollapsed(true)
     return <>
         <div>
             <CloseDoneItemsButton closeDoneItems={closeDoneItems} />
-            {itemCount}
+            hide completed
         </div>
         <DoneItems undoItem={undoItem} items={items} />
     </>
