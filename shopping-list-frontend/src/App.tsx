@@ -12,7 +12,7 @@ function App() {
   const [doneItems, setDoneItems] = useState(emptyItems)
   const [doneItemsCollapsed, setDoneItemsCollapsed] = useState(true)
   useEffect(() => {
-    axios.get('http://localhost:8000/items', {
+    axios.get('/items', {
       params: {
         done_items_collapsed: doneItemsCollapsed
       }
@@ -27,14 +27,14 @@ function App() {
 
   const addItem = (newItem: Item) => {
     console.log("creating item", newItem)
-    axios.post('http://localhost:8000/items', newItem).then(resp => {
+    axios.post('/items', newItem).then(resp => {
       setOpenItems(items => items.concat(resp.data))
     })
   }
 
   const finishItem = (item: Item) => {
     console.log("finishing item", item)
-    axios.put(`http://localhost:8000/items/${item.id}/complete`,
+    axios.put(`/items/${item.id}/complete`,
       null,
       {
         params: {
@@ -53,7 +53,7 @@ function App() {
   const undoItem = (item: Item) => {
     item.doneAt = undefined
     console.log("undoing item", item)
-    axios.put(`http://localhost:8000/items/${item.id}/undo`,
+    axios.put(`/items/${item.id}/undo`,
       null,
       {
         params: {

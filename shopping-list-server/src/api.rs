@@ -1,9 +1,8 @@
 use crate::{
-    cors::{PreflightCORS, CORS},
     model::{ItemId, Items},
     CompletedItem, Item, Result,
 };
-use rocket::{get, http::Method, options, post, put, serde::json::Json, State};
+use rocket::{get, post, put, serde::json::Json, State};
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -86,16 +85,6 @@ pub async fn undo_item(
         open_db.lock().unwrap().insert(id, item);
     }
     get_items(open_db, done_db, None, None, done_items_collapsed).await
-}
-
-#[options("/items/<_..>")]
-pub fn cors_preflight<'a>() -> PreflightCORS {
-    CORS::any(()).headers(vec!["content-type"]).methods(vec![
-        Method::Options,
-        Method::Put,
-        Method::Post,
-        Method::Get,
-    ])
 }
 
 fn open_items(

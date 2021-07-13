@@ -3,13 +3,12 @@ use std::{
     sync::{atomic::AtomicU64, Arc, Mutex},
 };
 
-use rocket::{launch, routes};
-use shopping_list_server::{CompletedItem, CorsFairing, Item, ItemId};
+use rocket::{fs::FileServer, launch, routes};
+use shopping_list_server::{CompletedItem, Item, ItemId};
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .attach(CorsFairing::any())
         .manage(Arc::new(Mutex::new(HashMap::<ItemId, Item>::new())))
         .manage(Arc::new(
             Mutex::new(HashMap::<ItemId, CompletedItem>::new()),
@@ -22,7 +21,7 @@ fn rocket() -> _ {
                 shopping_list_server::api::add_item,
                 shopping_list_server::api::complete_item,
                 shopping_list_server::api::undo_item,
-                shopping_list_server::api::cors_preflight,
             ],
         )
+        .mount("/", FileServer::from("/usr/local/bin/site"))
 }
