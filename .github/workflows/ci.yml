@@ -14,15 +14,10 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  checkout:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-
   test-rust:
     runs-on: ubuntu-latest
     steps:
-#     - uses: actions/checkout@v2
+    - uses: actions/checkout@v2
     - name: Run tests
       run: cargo test --verbose
     - name: Cache
@@ -39,7 +34,7 @@ jobs:
       run:
         working-directory: ./shopping-list-frontend
     steps:
-#       - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
           node-version: 14
