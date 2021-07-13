@@ -23,8 +23,6 @@ jobs:
         with:
           node-version: 14
        #   cache: 'npm'
-      - run: npm ci
-      - run: npm test
       - name: Cache
         uses: actions/cache@v2.1.6
         with:
@@ -32,3 +30,5 @@ jobs:
           path: node_modules
           # An explicit key for restoring and saving the cache
           key: npm-cache
+      - run: npm ci
+      - run: npm test
