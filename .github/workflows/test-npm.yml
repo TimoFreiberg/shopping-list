@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: test-npm
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: ./shopping-list-frontend
