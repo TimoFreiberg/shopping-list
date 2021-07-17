@@ -1,19 +1,22 @@
-use std::{
-    collections::HashMap,
-    sync::{atomic::AtomicU64, Arc, Mutex},
-};
+use std::{collections::HashMap, env, sync::{atomic::AtomicU64, Arc, Mutex}};
 
 use rocket::{fs::FileServer, launch, routes};
 use shopping_list_server::{CompletedItem, Item, ItemId};
 
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> _ {
+    dotenv::dotenv().ok();
+
+    let db_uri = env::var("DATABASE_URL").expect("DATABASE_URL environment variable not set");
+    let db_connection = sqlx::PgPool::connect(&db_uri).await.expect("Database connection failed");
+
     rocket::build()
         .manage(Arc::new(Mutex::new(HashMap::<ItemId, Item>::new())))
         .manage(Arc::new(
             Mutex::new(HashMap::<ItemId, CompletedItem>::new()),
         ))
         .manage(AtomicU64::new(0))
+        .manage(db_connection)
         .mount(
             "/",
             routes![

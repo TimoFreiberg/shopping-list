@@ -1,16 +1,16 @@
 [package]
 name = "shopping-list-server"
 version = "0.1.0"
-authors = ["'Timo Freiberg' <'timo.freiberg@gmail.com'>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+dotenv = "0.15"
 eyre = "0.6"
 rocket = { version = "0.5.0-rc.1", features = ["json"] }
 serde = "1"
 serde_json = "1"
-sqlx = { version = "0.5", features = ["runtime-tokio-rustls"] }
+sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "postgres", "time"] }
 thiserror = "1"
 time = { version = "0.2", features = ["serde"] }

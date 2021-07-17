@@ -2,13 +2,17 @@ use std::io::Cursor;
 
 use rocket::{http::Status, response::Responder, Response};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use time::OffsetDateTime;
 
 pub type Result<T> = std::result::Result<T, crate::Error>;
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 #[non_exhaustive]
-pub enum Error {}
+pub enum Error {
+    #[error("DB error: {0:?}")]
+    DbError(#[from] sqlx::Error),
+}
 
 impl<'r, 'o: 'r> Responder<'r, 'o> for Error {
     fn respond_to(self, _request: &'r rocket::Request<'_>) -> rocket::response::Result<'o> {
