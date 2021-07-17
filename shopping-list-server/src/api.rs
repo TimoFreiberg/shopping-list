@@ -37,7 +37,7 @@ pub async fn add_item(
     open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
     done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     id_counter: &State<AtomicU64>,
-    body: Json<AddTaskBody>,
+    body: Json<AddItemBody>,
     show_done_items: bool,
 ) -> Result<Json<Items>> {
     let now = OffsetDateTime::now_utc();
@@ -52,7 +52,7 @@ pub async fn add_item(
 }
 
 #[derive(Deserialize)]
-pub struct AddTaskBody {
+pub struct AddItemBody {
     name: String,
 }
 
@@ -85,6 +85,25 @@ pub async fn undo_item(
     if let Some(item) = item {
         let item = item.undo();
         open_db.lock().unwrap().insert(id, item);
+    }
+    get_items(open_db, done_db, None, None, show_done_items).await
+}
+
+#[put("/items/<id>?<show_done_items>", format = "json", data = "<body>")]
+pub async fn edit_item(
+    open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
+    id: u64,
+    body: Json<Item>,
+    show_done_items: bool,
+) -> Result<Json<Items>> {
+    let id = ItemId(id);
+    {
+        let mut mutex_guard = open_db.lock().unwrap();
+        let item = mutex_guard.get_mut(&id);
+        if let Some(item) = item {
+            item.name = body.name.clone();
+        }
     }
     get_items(open_db, done_db, None, None, show_done_items).await
 }

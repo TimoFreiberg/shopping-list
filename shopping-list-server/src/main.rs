@@ -21,6 +21,7 @@ fn rocket() -> _ {
                 shopping_list_server::api::add_item,
                 shopping_list_server::api::complete_item,
                 shopping_list_server::api::undo_item,
+                shopping_list_server::api::edit_item,
             ],
         )
         .mount("/", FileServer::from("site"))

@@ -117,9 +117,9 @@ const backendService: () => BackendService = () => {
                 console.log("editing item", item)
                 const resp = await axios.put(
                     `/items/${item.id}`,
-                    null,
+                    item,
                     params(showDoneItems))
-                console.log("undoItem response", resp)
+                console.log("editItem response", resp)
                 return resp.data
             }
         }
