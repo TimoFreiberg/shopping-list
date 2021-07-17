@@ -1,31 +1,24 @@
-import { Item } from '../Types'
-import CloseDoneItemsButton from './CloseDoneItemsButton'
+import type { Item } from '../types'
 import DoneItems from './DoneItems'
-import OpenDoneItemsButton from './OpenDoneItemsButton'
 
-type Props = {
+interface Props {
     items: Item[]
     undoItem: (item: Item) => void
     doneItemsCollapsed: boolean
     setDoneItemsCollapsed: (collapsed: boolean) => void
 }
 
-const DoneItemSection = ({ items, undoItem, doneItemsCollapsed, setDoneItemsCollapsed }: Props) => {
-    if (doneItemsCollapsed) {
-        const openDoneItems = () => setDoneItemsCollapsed(false)
-        return <div>
-            <OpenDoneItemsButton openDoneItems={openDoneItems} />
-            show completed
-        </div>
-    }
-    const closeDoneItems = () => setDoneItemsCollapsed(true)
-    return <>
+export default function DoneItemSection({ items, undoItem, doneItemsCollapsed, setDoneItemsCollapsed }: Props) {
+    return (
         <div>
-            <CloseDoneItemsButton closeDoneItems={closeDoneItems} />
-            hide completed
+            <label htmlFor='toggleDoneItems'>Show done items</label>
+            <input
+                id='toggleDoneItems'
+                type='checkbox'
+                // FIXME rename to showDoneItems
+                checked={!doneItemsCollapsed}
+                onChange={() => setDoneItemsCollapsed(!doneItemsCollapsed)} />
+            {!doneItemsCollapsed && <DoneItems undoItem={undoItem} items={items} />}
         </div>
-        <DoneItems undoItem={undoItem} items={items} />
-    </>
+    )
 }
-
-export default DoneItemSection

@@ -1,14 +1,15 @@
-import { Item } from "../Types"
+import type { Item } from "../types"
 import DoneItem from "./DoneItem"
 
-type Props = {
+interface Props {
     undoItem: (item: Item) => void
     items: Item[]
 }
-const DoneItems = ({ undoItem, items }: Props) => {
-    return <div>
-        {items.map(i => <DoneItem key={i.id} item={i} undoItem={() => undoItem(i)} />)}
-    </div>
-}
 
-export default DoneItems
+export default function DoneItems({ undoItem, items }: Props) {
+    return (
+        <>
+            {items.map((i, ix) => <DoneItem key={ix} item={i} undoItem={() => undoItem(i)} />)}
+        </>
+    )
+}

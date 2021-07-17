@@ -1,6 +1,7 @@
 type Props = {
     openDoneItems: () => void
 }
-const OpenDoneItemsButton = ({ openDoneItems }: Props) => <button onClick={ openDoneItems}>[v]</button>
 
-export default OpenDoneItemsButton
+export default function OpenDoneItemsButton({ openDoneItems }: Props) {
+    return <button onClick={openDoneItems}>[v]</button>
+}

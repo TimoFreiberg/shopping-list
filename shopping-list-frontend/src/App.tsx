@@ -1,90 +1,58 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { Item } from './Types'
 import Header from './components/Header'
 import OpenItemSection from './components/OpenItemSection'
 import DoneItemSection from './components/DoneItemSection'
-import axios from 'axios'
+import backendService, { BackendService, ItemsResponse } from './BackendService';
+import type { Item } from './types';
 
 function App() {
-  const emptyItems: Item[] = []
-  const [openItems, setOpenItems] = useState(emptyItems)
-  const [doneItems, setDoneItems] = useState(emptyItems)
-  const [doneItemsCollapsed, setDoneItemsCollapsed] = useState(true)
-  useEffect(() => {
-    axios.get('/items', {
-      params: {
-        done_items_collapsed: doneItemsCollapsed
-      }
-    }).then(resp => {
-      console.log("getOpenItems response", resp)
-      setOpenItems(resp.data.open)
-      if (resp.data.done) {
-        setDoneItems(resp.data.done)
-      }
-    })
-  }, [doneItemsCollapsed])
+  const backend = backendService()
+  return <AppInternal backend={backend} />
+}
 
-  const addItem = (newItem: Item) => {
-    console.log("creating item", newItem)
-    axios.post('/items', newItem).then(resp => {
-      setOpenItems(items => items.concat(resp.data))
-    })
-  }
+type Props = {
+  backend: BackendService
+}
+function AppInternal({ backend }: Props) {
+  const [openItems, setOpenItems] = useState<Item[]>();
+  const [doneItems, setDoneItems] = useState<Item[]>([]);
+  const [doneItemsCollapsed, setDoneItemsCollapsed] = useState(true);
 
-  const finishItem = (item: Item) => {
-    console.log("finishing item", item)
-    axios.put(`/items/${item.id}/complete`,
-      null,
-      {
-        params: {
-          done_items_collapsed: doneItemsCollapsed
-        }
-      }
-    ).then(resp => {
-      console.log("finishItem response", resp)
-      setOpenItems(resp.data.open)
-      if (resp.data.done) {
-        setDoneItems(resp.data.done)
-      }
-    })
-  }
+  const handleResponse = (resp: ItemsResponse) => {
+    setOpenItems(resp.open);
+    if (resp.done) {
+      setDoneItems(resp.done);
+    }
+  };
 
-  const undoItem = (item: Item) => {
-    item.doneAt = undefined
-    console.log("undoing item", item)
-    axios.put(`/items/${item.id}/undo`,
-      null,
-      {
-        params: {
-          done_items_collapsed: doneItemsCollapsed
-        }
-      }
-    ).then(resp => {
-      console.log("undoItem response", resp)
-      setOpenItems(resp.data.open)
-      if (resp.data.done) {
-        setDoneItems(resp.data.done)
-      }
-    })
-  }
+  useEffect(
+    () => { backend.getItems(doneItemsCollapsed).then(handleResponse); },
+    [doneItemsCollapsed, backend]
+  );
+
+  const addItem = (newItem: Item) => { backend.addItem(newItem, doneItemsCollapsed).then(handleResponse); };
+  const finishItem = (item: Item) => { backend.finishItem(item, doneItemsCollapsed).then(handleResponse); };
+  const undoItem = (item: Item) => { backend.undoItem(item, doneItemsCollapsed).then(handleResponse); };
+  const editItem = (item: Item) => { backend.editItem(item, doneItemsCollapsed).then(handleResponse); };
 
   return (
     <div className="App">
       <header className="App-header">
         <Header />
-        <OpenItemSection
-          items={openItems}
-          setItems={setOpenItems}
-          addItem={addItem}
-          finishItem={finishItem}
-        />
+        {
+          openItems &&
+          <OpenItemSection
+            items={openItems}
+            addItem={addItem}
+            finishItem={finishItem}
+            editItem={editItem} />
+        }
         <DoneItemSection
           items={doneItems}
           undoItem={undoItem}
           doneItemsCollapsed={doneItemsCollapsed}
-          setDoneItemsCollapsed={setDoneItemsCollapsed}
-        />
+          setDoneItemsCollapsed={it => setDoneItemsCollapsed(it)} />
       </header>
     </div>
   );

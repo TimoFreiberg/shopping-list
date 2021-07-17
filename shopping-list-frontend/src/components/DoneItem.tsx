@@ -1,12 +1,13 @@
-import { Item } from "../Types"
+import type { Item } from "../types"
 
-type Props = {
+interface Props {
     item: Item
     undoItem: () => void
 }
-const DoneItem = ({ item, undoItem }: Props) => <p>
-    <button onClick={undoItem}>🔙</button>
-    <del>{item.name}</del>
-</p>
 
-export default DoneItem
+export default function DoneItem({ item, undoItem }: Props) {
+    return <p>
+        <button onClick={undoItem}>🔙</button>
+        <del>{item.name}</del>
+    </p>
+}

@@ -1,3 +1,3 @@
-const Header = () => <h1>Shopping List</h1>
-
-export default Header
+export default function Header() {
+    return <h1>Shopping List</h1>
+}

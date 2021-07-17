@@ -1,19 +1,19 @@
 import { FormEvent, useState } from "react"
-import { Item } from "../Types"
+import type { Item } from "../types"
 
 type Props = {
     item: Item
     finishItem: () => void
-    editItem: (id: number, newName: string) => void
-    deleteItem: (id: number) => void
+    editItem: (newName: string) => void
 }
-const OpenItem = ({ item, finishItem, editItem }: Props) => {
+
+export default function OpenItem({ item, finishItem, editItem }: Props) {
     const [editState, setEditState] = useState(false)
     const [newName, setNewName] = useState(item.name)
     if (editState) {
         const submitEdit = (e: FormEvent) => {
             e.preventDefault()
-            editItem(item.id, newName)
+            editItem(newName)
             setEditState(false)
         }
         const abortEdit = (e: FormEvent) => {
@@ -36,5 +36,3 @@ const OpenItem = ({ item, finishItem, editItem }: Props) => {
         <button onClick={() => setEditState(true)}>✏️</button>
     </p>
 }
-
-export default OpenItem
