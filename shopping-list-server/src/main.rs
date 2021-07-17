@@ -23,5 +23,5 @@ fn rocket() -> _ {
                 shopping_list_server::api::undo_item,
             ],
         )
-        .mount("/", FileServer::from("/usr/local/bin/site"))
+        .mount("/", FileServer::from("site"))
 }

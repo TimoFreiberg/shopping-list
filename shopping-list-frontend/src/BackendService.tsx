@@ -2,11 +2,11 @@ import { Item } from "./types"
 import axios from 'axios'
 
 type BackendService = {
-    getItems: (doneItemsCollapsed: boolean) => Promise<ItemsResponse>
-    addItem: (item: Item, doneItemsCollapsed: boolean) => Promise<ItemsResponse>
-    finishItem: (item: Item, doneItemsCollapsed: boolean) => Promise<ItemsResponse>
-    undoItem: (item: Item, doneItemsCollapsed: boolean) => Promise<ItemsResponse>
-    editItem: (item: Item, doneItemsCollapsed: boolean) => Promise<ItemsResponse>
+    getItems: (showDoneItems: boolean) => Promise<ItemsResponse>
+    addItem: (item: Item, showDoneItems: boolean) => Promise<ItemsResponse>
+    finishItem: (item: Item, showDoneItems: boolean) => Promise<ItemsResponse>
+    undoItem: (item: Item, showDoneItems: boolean) => Promise<ItemsResponse>
+    editItem: (item: Item, showDoneItems: boolean) => Promise<ItemsResponse>
 }
 
 type ItemsResponse = {
@@ -20,41 +20,41 @@ const backendService: () => BackendService = () => {
         var id = 0
         var openItems: Item[] = []
         var doneItems: Item[] = []
-        const response = (doneItemsCollapsed: boolean) => {
-            const done = doneItemsCollapsed ? [] : doneItems
+        const response = (showDoneItems: boolean) => {
+            const done = showDoneItems ? doneItems : []
             const resp = { open: openItems, done: done }
             console.log("response", resp)
             return resp
         }
-        const getItems = async (doneItemsCollapsed: boolean) => {
+        const getItems = async (showDoneItems: boolean) => {
             console.log('getItems called')
-            return response(doneItemsCollapsed)
+            return response(showDoneItems)
         }
-        const addItem = async (item: Item, doneItemsCollapsed: boolean) => {
+        const addItem = async (item: Item, showDoneItems: boolean) => {
             console.log('addItem called')
             item.id = id
             id += 1
             openItems = openItems.concat(item)
-            return response(doneItemsCollapsed)
+            return response(showDoneItems)
         }
-        const finishItem = async (item: Item, doneItemsCollapsed: boolean) => {
+        const finishItem = async (item: Item, showDoneItems: boolean) => {
             console.log('finishItem called')
             item.doneAt = new Date()
             openItems = openItems.filter(i => i.id !== item.id)
             doneItems = doneItems.concat(item)
-            return response(doneItemsCollapsed)
+            return response(showDoneItems)
         }
-        const undoItem = async (item: Item, doneItemsCollapsed: boolean) => {
+        const undoItem = async (item: Item, showDoneItems: boolean) => {
             console.log('undoItem called')
             item.doneAt = undefined
             doneItems = doneItems.filter(i => i.id !== item.id)
             openItems.push(item)
-            return response(doneItemsCollapsed)
+            return response(showDoneItems)
         }
-        const editItem = async (item: Item, doneItemsCollapsed: boolean) => {
+        const editItem = async (item: Item, showDoneItems: boolean) => {
             console.log('editItem called')
             openItems = openItems.map(i => i.id === item.id ? item : i)
-            return response(doneItemsCollapsed)
+            return response(showDoneItems)
         }
         return {
             getItems: getItems,
@@ -64,18 +64,18 @@ const backendService: () => BackendService = () => {
             editItem: editItem
         }
     } else {
-        const params = (doneItemsCollapsed: boolean) => {
+        const params = (showDoneItems: boolean) => {
             return {
                 params: {
-                    done_items_collapsed: doneItemsCollapsed
+                    show_done_items/*  */: showDoneItems
                 }
             }
         }
         return {
-            getItems: async (doneItemsCollapsed: boolean) => {
+            getItems: async (showDoneItems: boolean) => {
                 const resp = await axios.get('/items', {
                     params: {
-                        done_items_collapsed: doneItemsCollapsed
+                        show_done_items: showDoneItems
                     }
                 })
                 // FIXME handle errors
@@ -83,42 +83,42 @@ const backendService: () => BackendService = () => {
                 console.log("getOpenItems response", resp)
                 return resp.data
             },
-            addItem: async (item: Item, doneItemsCollapsed: boolean) => {
-                console.log("creating item", item)
+            addItem: async (item: Item, showDoneItems: boolean) => {
+                console.log("adding item", item)
                 const resp = await axios.post(
                     '/items',
                     item,
-                    params(doneItemsCollapsed)
+                    params(showDoneItems)
                 )
-                console.log("createItem response", resp)
+                console.log("addItem response", resp)
                 return resp.data
             },
-            finishItem: async (item: Item, doneItemsCollapsed: boolean) => {
+            finishItem: async (item: Item, showDoneItems: boolean) => {
                 console.log("finishing item", item)
                 const resp = await axios.put(
                     `/items/${item.id}/complete`,
                     null,
-                    params(doneItemsCollapsed)
+                    params(showDoneItems)
                 )
                 console.log("finishItem response", resp)
                 return resp.data
             },
-            undoItem: async (item: Item, doneItemsCollapsed: boolean) => {
+            undoItem: async (item: Item, showDoneItems: boolean) => {
                 console.log("undoing item", item)
                 const resp = await axios.put(
                     `/items/${item.id}/undo`,
                     null,
-                    params(doneItemsCollapsed)
+                    params(showDoneItems)
                 )
                 console.log("undoItem response", resp)
                 return resp.data
             },
-            editItem: async (item: Item, doneItemsCollapsed: boolean) => {
+            editItem: async (item: Item, showDoneItems: boolean) => {
                 console.log("editing item", item)
                 const resp = await axios.put(
                     `/items/${item.id}`,
                     null,
-                    params(doneItemsCollapsed))
+                    params(showDoneItems))
                 console.log("undoItem response", resp)
                 return resp.data
             }

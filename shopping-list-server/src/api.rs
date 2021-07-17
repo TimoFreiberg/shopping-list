@@ -13,31 +13,33 @@ use std::{
 };
 use time::OffsetDateTime;
 
-#[get("/items?<offset>&<limit>&<done_items_collapsed>")]
+#[get("/items?<offset>&<limit>&<show_done_items>")]
 pub async fn get_items(
     open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
     done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     offset: Option<usize>,
     limit: Option<usize>,
-    done_items_collapsed: bool,
+    show_done_items: bool,
 ) -> Result<Json<Items>> {
     let open = open_items(open_db, offset, limit);
 
-    let done = if done_items_collapsed {
-        None
-    } else {
+    let done = if show_done_items {
         Some(done_items(done_db, offset, limit))
+    } else {
+        None
     };
 
     Ok(Json(Items { open, done }))
 }
 
-#[post("/items", format = "json", data = "<body>")]
+#[post("/items?<show_done_items>", format = "json", data = "<body>")]
 pub async fn add_item(
-    db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
+    done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     id_counter: &State<AtomicU64>,
     body: Json<AddTaskBody>,
-) -> Result<Json<Item>> {
+    show_done_items: bool,
+) -> Result<Json<Items>> {
     let now = OffsetDateTime::now_utc();
     let id = ItemId(id_counter.fetch_add(1, Ordering::Relaxed));
     let item = Item {
@@ -45,8 +47,8 @@ pub async fn add_item(
         name: body.into_inner().name,
         created_at: now,
     };
-    db.lock().unwrap().insert(id, item.clone());
-    Ok(Json(item))
+    open_db.lock().unwrap().insert(id, item.clone());
+    get_items(open_db, done_db, None, None, show_done_items).await
 }
 
 #[derive(Deserialize)]
@@ -54,12 +56,12 @@ pub struct AddTaskBody {
     name: String,
 }
 
-#[put("/items/<id>/complete?<done_items_collapsed>")]
+#[put("/items/<id>/complete?<show_done_items>")]
 pub async fn complete_item(
     open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
     done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     id: u64,
-    done_items_collapsed: bool,
+    show_done_items: bool,
 ) -> Result<Json<Items>> {
     let id = ItemId(id);
     let item = open_db.lock().unwrap().remove(&id);
@@ -68,15 +70,15 @@ pub async fn complete_item(
         let completed_item = item.complete(now);
         done_db.lock().unwrap().insert(id, completed_item);
     }
-    get_items(open_db, done_db, None, None, done_items_collapsed).await
+    get_items(open_db, done_db, None, None, show_done_items).await
 }
 
-#[put("/items/<id>/undo?<done_items_collapsed>")]
+#[put("/items/<id>/undo?<show_done_items>")]
 pub async fn undo_item(
     open_db: &State<Arc<Mutex<HashMap<ItemId, Item>>>>,
     done_db: &State<Arc<Mutex<HashMap<ItemId, CompletedItem>>>>,
     id: u64,
-    done_items_collapsed: bool,
+    show_done_items: bool,
 ) -> Result<Json<Items>> {
     let id = ItemId(id);
     let item = done_db.lock().unwrap().remove(&id);
@@ -84,7 +86,7 @@ pub async fn undo_item(
         let item = item.undo();
         open_db.lock().unwrap().insert(id, item);
     }
-    get_items(open_db, done_db, None, None, done_items_collapsed).await
+    get_items(open_db, done_db, None, None, show_done_items).await
 }
 
 fn open_items(

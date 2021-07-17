@@ -16,8 +16,8 @@ type Props = {
 }
 function AppInternal({ backend }: Props) {
   const [openItems, setOpenItems] = useState<Item[]>();
-  const [doneItems, setDoneItems] = useState<Item[]>([]);
-  const [doneItemsCollapsed, setDoneItemsCollapsed] = useState(true);
+  const [doneItems, setDoneItems] = useState<Item[]>();
+  const [showDoneItems, setShowDoneItems] = useState(false);
 
   const handleResponse = (resp: ItemsResponse) => {
     setOpenItems(resp.open);
@@ -27,14 +27,14 @@ function AppInternal({ backend }: Props) {
   };
 
   useEffect(
-    () => { backend.getItems(doneItemsCollapsed).then(handleResponse); },
-    [doneItemsCollapsed, backend]
+    () => { backend.getItems(showDoneItems).then(handleResponse); },
+    [showDoneItems, backend]
   );
 
-  const addItem = (newItem: Item) => { backend.addItem(newItem, doneItemsCollapsed).then(handleResponse); };
-  const finishItem = (item: Item) => { backend.finishItem(item, doneItemsCollapsed).then(handleResponse); };
-  const undoItem = (item: Item) => { backend.undoItem(item, doneItemsCollapsed).then(handleResponse); };
-  const editItem = (item: Item) => { backend.editItem(item, doneItemsCollapsed).then(handleResponse); };
+  const addItem = (newItem: Item) => { backend.addItem(newItem, showDoneItems).then(handleResponse); };
+  const finishItem = (item: Item) => { backend.finishItem(item, showDoneItems).then(handleResponse); };
+  const undoItem = (item: Item) => { backend.undoItem(item, showDoneItems).then(handleResponse); };
+  const editItem = (item: Item) => { backend.editItem(item, showDoneItems).then(handleResponse); };
 
   return (
     <div className="App">
@@ -46,13 +46,15 @@ function AppInternal({ backend }: Props) {
             items={openItems}
             addItem={addItem}
             finishItem={finishItem}
-            editItem={editItem} />
+            editItem={editItem}
+          />
         }
         <DoneItemSection
           items={doneItems}
           undoItem={undoItem}
-          doneItemsCollapsed={doneItemsCollapsed}
-          setDoneItemsCollapsed={it => setDoneItemsCollapsed(it)} />
+          showDoneItems={showDoneItems}
+          setShowDoneItems={it => setShowDoneItems(it)}
+        />
       </header>
     </div>
   );

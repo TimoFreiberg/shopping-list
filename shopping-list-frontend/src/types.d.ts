@@ -4,5 +4,3 @@ export type Item = {
     createdAt: Date;
     doneAt?: Date;
 }
-
-// export type { Item };
