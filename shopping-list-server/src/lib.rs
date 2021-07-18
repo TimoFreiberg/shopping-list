@@ -1,5 +1,9 @@
 pub mod api;
-mod model;
 mod db;
+mod model;
+mod repo;
 
-pub use self::model::{CompletedItem, Error, Item, ItemId, Result};
+pub use self::{
+    model::{DoneItem, Error, ItemId, OpenItem, Result},
+    repo::{in_memory::InMemoryRepo, postgres::PostgresRepo, Repository},
+};
