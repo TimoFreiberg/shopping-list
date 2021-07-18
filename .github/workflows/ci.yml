@@ -18,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Run tests
-      run: cargo test --verbose
     - name: Cache
       uses: actions/cache@v2.1.6
       with:
@@ -27,6 +25,8 @@ jobs:
         path: target
         # An explicit key for restoring and saving the cache
         key: rust-cache
+    - name: Run tests
+      run: cargo test --verbose
 
   test-npm:
     runs-on: ubuntu-latest
