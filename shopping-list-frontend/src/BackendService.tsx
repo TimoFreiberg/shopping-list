@@ -64,22 +64,21 @@ const backendService: () => BackendService = () => {
             editItem: editItem
         }
     } else {
+        const errorHandler = (e: any) => {
+            console.log("error: ", e)
+            return { data: { openItems: [] } }
+        }
         const params = (showDoneItems: boolean) => {
             return {
                 params: {
-                    show_done_items/*  */: showDoneItems
+                    show_done_items: showDoneItems
                 }
             }
         }
         return {
             getItems: async (showDoneItems: boolean) => {
-                const resp = await axios.get('/items', {
-                    params: {
-                        show_done_items: showDoneItems
-                    }
-                })
-                // FIXME handle errors
-                // .catch(e => alert(e))
+                const resp = await axios.get('/items', params(showDoneItems))
+                    .catch(errorHandler)
                 console.log("getOpenItems response", resp)
                 return resp.data
             },
@@ -90,6 +89,7 @@ const backendService: () => BackendService = () => {
                     item,
                     params(showDoneItems)
                 )
+                    .catch(errorHandler)
                 console.log("addItem response", resp)
                 return resp.data
             },
@@ -100,6 +100,7 @@ const backendService: () => BackendService = () => {
                     null,
                     params(showDoneItems)
                 )
+                    .catch(errorHandler)
                 console.log("finishItem response", resp)
                 return resp.data
             },
@@ -110,6 +111,7 @@ const backendService: () => BackendService = () => {
                     null,
                     params(showDoneItems)
                 )
+                    .catch(errorHandler)
                 console.log("undoItem response", resp)
                 return resp.data
             },
@@ -118,7 +120,9 @@ const backendService: () => BackendService = () => {
                 const resp = await axios.put(
                     `/items/${item.id}`,
                     item,
-                    params(showDoneItems))
+                    params(showDoneItems)
+                )
+                    .catch(errorHandler)
                 console.log("editItem response", resp)
                 return resp.data
             }

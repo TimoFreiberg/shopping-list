@@ -15,6 +15,8 @@ pub enum Error {
     DbError(#[from] sqlx::Error),
     #[error("DB Migration error: {0:?}")]
     MigrateError(#[from] MigrateError),
+    #[error("Login failed: {0:?}")]
+    LoginError(String),
     #[error("Error: {0:?}")]
     LogicError(#[from] eyre::Error),
 }

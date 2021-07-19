@@ -1,10 +1,12 @@
 pub mod api;
-mod db;
+mod login;
 mod model;
-mod repo;
 mod oauth;
+mod repo;
 
 pub use self::{
+    login::{AuthFairing, Login},
     model::{DoneItem, Error, ItemId, OpenItem, Result},
+    oauth::{Challenges, OAuthClient},
     repo::{in_memory::InMemoryRepo, postgres::PostgresRepo, Repository},
 };

@@ -122,13 +122,15 @@ impl PostgresRepo {
         if item.id.is_zero() {
             Err(eyre!("Can't create new done item without ID").into())
         } else {
-            query(r#"insert into done_items (id, name, created_at, done_at) values ($1, $2, $3, $4)"#)
-                .bind(&item.id.0)
-                .bind(&item.name)
-                .bind(&item.created_at)
-                .bind(&item.done_at)
-                .execute(&self.pool)
-                .await?;
+            query(
+                r#"insert into done_items (id, name, created_at, done_at) values ($1, $2, $3, $4)"#,
+            )
+            .bind(&item.id.0)
+            .bind(&item.name)
+            .bind(&item.created_at)
+            .bind(&item.done_at)
+            .execute(&self.pool)
+            .await?;
             Ok(())
         }
     }
