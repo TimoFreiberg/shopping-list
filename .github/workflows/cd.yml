@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag shopping-list:$(date +%s)
+      run: docker build . --file Dockerfile --tag shopping-list:latest
     - uses: superfly/flyctl-actions@master
       env:
         FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
