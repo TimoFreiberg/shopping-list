@@ -49,10 +49,9 @@ impl OAuthClient {
         let token_url = TokenUrl::new("https://www.googleapis.com/oauth2/v3/token".to_string())
             .expect("Invalid token endpoint URL");
 
-        let redirect_host =
-            env::var("OAUTH_REDIRECT_URL").unwrap_or_else(|_| "http://localhost:8000".to_string());
-        let redirect_url =
-            RedirectUrl::new(redirect_host + "/auth/authorized").expect("Invalid redirect URL");
+        let redirect_host = env::var("OAUTH_REDIRECT_URL")?.trim_end_matches('/').to_string();
+        let redirect_url = RedirectUrl::new(redirect_host + "/auth/authorized").expect("Invalid redirect URL");
+
         let oauth_client =
             BasicClient::new(client_id, Some(client_secret), auth_url, Some(token_url))
                 .set_redirect_uri(redirect_url)
