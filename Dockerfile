@@ -46,13 +46,17 @@ RUN npm run build
 #### Runtime
 FROM debian:buster-slim as runtime
 WORKDIR /usr/local/bin
-COPY --from=builder /app/target/release/shopping-list-server app
-COPY --from=site /app/build site
+
+RUN apt-get update
+RUN apt-get install openssl -y
 
 # Import from planner.
 COPY --from=planner /etc/passwd /etc/passwd
 COPY --from=planner /etc/group /etc/group
 USER appuser:appuser
+
+COPY --from=builder /app/target/release/shopping-list-server app
+COPY --from=site /app/build site
 
 COPY Rocket.toml Rocket.toml
 
