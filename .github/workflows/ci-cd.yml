@@ -3,6 +3,10 @@ name: ci-cd
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+    - 'README.md'
+    - '.gitignore'
+    - 'start-db.sh'
 
 concurrency:
   group: ci-cd
