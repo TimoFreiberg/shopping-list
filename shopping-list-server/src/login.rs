@@ -44,11 +44,11 @@ impl Fairing for AuthFairing {
         }
     }
     async fn on_request(&self, req: &mut rocket::Request<'_>, _data: &mut rocket::Data<'_>) {
-        if req.cookies().get_private(USER_COOKIE).is_none() {
-            if !req.uri().path().starts_with("/auth") {
-                info!("Redirecting to auth endpoint");
-                req.set_uri(rocket::uri!(api::auth));
-            }
+        if req.cookies().get_private(USER_COOKIE).is_none()
+            && !req.uri().path().starts_with("/auth")
+        {
+            info!("Redirecting to auth endpoint");
+            req.set_uri(rocket::uri!(api::auth));
         }
     }
 }
@@ -72,7 +72,7 @@ impl Login {
         } else {
             AllowedEmails::Some(
                 allowed_emails
-                    .split(",")
+                    .split(',')
                     .map(|s| s.trim().to_string())
                     .collect(),
             )

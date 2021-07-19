@@ -50,7 +50,7 @@ impl OAuthClient {
             .expect("Invalid token endpoint URL");
 
         let redirect_host =
-            env::var("OAUTH_REDIRECT_URL").unwrap_or("http://localhost:8000".to_string());
+            env::var("OAUTH_REDIRECT_URL").unwrap_or_else(|_| "http://localhost:8000".to_string());
         let redirect_url =
             RedirectUrl::new(redirect_host + "/auth/authorized").expect("Invalid redirect URL");
         let oauth_client =
