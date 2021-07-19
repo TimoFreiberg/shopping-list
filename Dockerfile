@@ -60,6 +60,7 @@ COPY --from=site /app/build site
 
 COPY db db
 COPY Rocket.toml Rocket.toml
+COPY prod.env .env
 
 EXPOSE 8000
 
