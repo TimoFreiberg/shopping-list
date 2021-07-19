@@ -58,6 +58,7 @@ USER appuser:appuser
 COPY --from=builder /app/target/release/shopping-list-server app
 COPY --from=site /app/build site
 
+COPY db db
 COPY Rocket.toml Rocket.toml
 
 EXPOSE 8000
