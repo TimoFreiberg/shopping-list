@@ -1,13 +1,11 @@
-name: ci
+name: pr
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
 concurrency:
-  group: ci
+  group: pr
   cancel-in-progress: true
 
 env:
