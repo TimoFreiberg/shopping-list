@@ -20,8 +20,8 @@ pub struct InMemoryRepo {
 
 impl Default for InMemoryRepo {
     fn default() -> Self {
-        let open_items = Arc::new(Mutex::new(HashMap::<ItemId, OpenItem>::new()));
-        let done_items = Arc::new(Mutex::new(HashMap::<ItemId, DoneItem>::new()));
+        let open_items = Arc::default();
+        let done_items = Arc::default();
         let id = AtomicI64::new(0);
         Self {
             open_items,
