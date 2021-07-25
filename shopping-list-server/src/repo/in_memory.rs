@@ -91,6 +91,7 @@ impl InMemoryRepo {
         let mutex_guard = self.open_items.lock().unwrap();
         let mut values: Vec<_> = mutex_guard.values().collect();
         values.sort_unstable_by_key(|it| it.created_at);
+        values.reverse();
         values
             .into_iter()
             .skip(offset.unwrap_or(0))
@@ -102,6 +103,7 @@ impl InMemoryRepo {
         let mutex_guard = self.done_items.lock().unwrap();
         let mut values: Vec<_> = mutex_guard.values().collect();
         values.sort_unstable_by_key(|it| it.created_at);
+        values.reverse();
         values
             .into_iter()
             .skip(offset.unwrap_or(0))

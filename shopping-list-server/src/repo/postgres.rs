@@ -34,21 +34,22 @@ impl IRepository for PostgresRepo {
         limit: Option<usize>,
         show_done_items: bool,
     ) -> Result<crate::model::Items> {
-        let open = query_as(r#"select * from open_items order by created_at limit $1 offset $2"#)
-            .bind(limit.unwrap_or(DEFAULT_LIMIT) as u32)
-            .bind(offset.unwrap_or(0) as u32)
-            .fetch_all(&self.pool)
-            .await?
-            .into_iter()
-            .map(|it: OpenItemRow| OpenItem {
-                id: it.id.into(),
-                name: it.name,
-                created_at: it.created_at,
-            })
-            .collect();
+        let open =
+            query_as(r#"select * from open_items order by created_at desc limit $1 offset $2"#)
+                .bind(limit.unwrap_or(DEFAULT_LIMIT) as u32)
+                .bind(offset.unwrap_or(0) as u32)
+                .fetch_all(&self.pool)
+                .await?
+                .into_iter()
+                .map(|it: OpenItemRow| OpenItem {
+                    id: it.id.into(),
+                    name: it.name,
+                    created_at: it.created_at,
+                })
+                .collect();
 
         let done = if show_done_items {
-            let done_items = query_as(r#"select * from done_items order by done_at"#)
+            let done_items = query_as(r#"select * from done_items order by done_at desc"#)
                 .fetch_all(&self.pool)
                 .await?
                 .into_iter()
