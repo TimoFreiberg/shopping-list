@@ -17,6 +17,6 @@ serde = "1"
 serde_json = "1"
 sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "postgres", "time", "migrate"] }
 thiserror = "1"
-time = { version = "0.2", features = ["serde"] }
+time = { version = "0.3", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = "0.2"
