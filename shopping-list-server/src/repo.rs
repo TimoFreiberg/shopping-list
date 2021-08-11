@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use time::OffsetDateTime;
+use chrono::{DateTime, Utc};
 
 use crate::{
     model::{Items, Result},
@@ -20,7 +20,7 @@ pub trait IRepository {
         show_done_items: bool,
     ) -> Result<Items>;
     async fn add_open_item(&self, item: OpenItem) -> Result<()>;
-    async fn complete_item(&self, id: ItemId, now: OffsetDateTime) -> Result<()>;
+    async fn complete_item(&self, id: ItemId, now: DateTime<Utc>) -> Result<()>;
     async fn undo_item(&self, id: ItemId) -> Result<()>;
     async fn edit_item(&self, id: ItemId, item: OpenItem) -> Result<()>;
 }

@@ -1,10 +1,10 @@
 use std::io::Cursor;
 
+use chrono::{DateTime, Utc};
 use rocket::{http::Status, response::Responder, Response};
 use serde::{Deserialize, Serialize};
 use sqlx::migrate::MigrateError;
 use thiserror::Error;
-use time::OffsetDateTime;
 
 pub type Result<T, E = crate::Error> = std::result::Result<T, E>;
 
@@ -41,11 +41,11 @@ pub struct Items {
 pub struct OpenItem {
     pub(crate) id: ItemId,
     pub(crate) name: String,
-    pub created_at: OffsetDateTime,
+    pub created_at: DateTime<Utc>,
 }
 
 impl OpenItem {
-    pub fn complete(self, now: OffsetDateTime) -> DoneItem {
+    pub fn complete(self, now: DateTime<Utc>) -> DoneItem {
         DoneItem {
             id: self.id,
             name: self.name,
@@ -59,8 +59,8 @@ impl OpenItem {
 pub struct DoneItem {
     pub(crate) id: ItemId,
     pub(crate) name: String,
-    pub(crate) created_at: OffsetDateTime,
-    pub(crate) done_at: OffsetDateTime,
+    pub(crate) created_at: DateTime<Utc>,
+    pub(crate) done_at: DateTime<Utc>,
 }
 
 impl DoneItem {

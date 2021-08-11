@@ -1,11 +1,11 @@
 use std::path::Path;
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use eyre::eyre;
 use sqlx::migrate::Migrator;
 use sqlx::{query, PgPool};
 use sqlx::{query_as, FromRow};
-use time::OffsetDateTime;
 
 use crate::{
     model::Items,
@@ -86,7 +86,7 @@ impl IRepository for PostgresRepo {
         Ok(())
     }
 
-    async fn complete_item(&self, id: ItemId, now: OffsetDateTime) -> Result<()> {
+    async fn complete_item(&self, id: ItemId, now: DateTime<Utc>) -> Result<()> {
         let tx = self.pool.begin().await?;
         let item = self.delete_open_item(&id).await?;
         if let Some(item) = item {
@@ -167,13 +167,13 @@ impl PostgresRepo {
 struct OpenItemRow {
     id: i64,
     name: String,
-    created_at: OffsetDateTime,
+    created_at: DateTime<Utc>,
 }
 
 #[derive(FromRow)]
 struct DoneItemRow {
     id: i64,
     name: String,
-    created_at: OffsetDateTime,
-    done_at: OffsetDateTime,
+    created_at: DateTime<Utc>,
+    done_at: DateTime<Utc>,
 }
