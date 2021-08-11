@@ -1,3 +1,4 @@
+use chrono::Utc;
 use oauth2::{AuthorizationCode, CsrfToken};
 use rocket::{
     get,
@@ -8,7 +9,6 @@ use rocket::{
     State,
 };
 use serde::Deserialize;
-use time::OffsetDateTime;
 use tracing::{info, warn};
 
 use crate::{
@@ -40,7 +40,7 @@ pub async fn add_item(
     show_done_items: bool,
     _logged_in: LoggedInUser,
 ) -> Result<Json<Items>> {
-    let now = OffsetDateTime::now_utc();
+    let now = Utc::now();
     let item = OpenItem {
         id: ItemId::default(),
         name: body.into_inner().name,
@@ -65,7 +65,7 @@ pub async fn complete_item(
     _logged_in: LoggedInUser,
 ) -> Result<Json<Items>> {
     let id = ItemId(id);
-    repo.complete_item(id, OffsetDateTime::now_utc()).await?;
+    repo.complete_item(id, Utc::now()).await?;
     let items = repo.get_items(None, None, show_done_items).await?;
     Ok(Json(items))
 }

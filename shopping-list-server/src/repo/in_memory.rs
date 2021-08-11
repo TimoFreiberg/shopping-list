@@ -4,7 +4,7 @@ use std::{
 };
 
 use async_trait::async_trait;
-use time::OffsetDateTime;
+use chrono::{DateTime, Utc};
 
 use crate::{
     model::Items,
@@ -58,7 +58,7 @@ impl IRepository for InMemoryRepo {
         Ok(())
     }
 
-    async fn complete_item(&self, id: ItemId, now: OffsetDateTime) -> Result<()> {
+    async fn complete_item(&self, id: ItemId, now: DateTime<Utc>) -> Result<()> {
         let item = self.open_items.lock().unwrap().remove(&id);
         if let Some(item) = item {
             let item = item.complete(now);
